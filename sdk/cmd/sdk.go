@@ -34,8 +34,8 @@ type Header struct {
 	ReservedAreaTwo [2]byte
 }
 
-func dump(rom string) (e error, result string) {
-	file, err := os.Open(rom)
+func dump(romFile string) (e error, result string) {
+	file, err := os.Open(romFile)
 	if err != nil {
 		return err, ""
 	}
@@ -45,9 +45,25 @@ func dump(rom string) (e error, result string) {
 	err = binary.Read(file, binary.LittleEndian, &header)
 	if err != nil {
 		return err, ""
-
 	}
 
-	fmt.Printf("%s\n", header.GameTitle)
-	return nil, "pass"
+	rom, err := os.ReadFile(romFile)
+	if err != nil {
+		return err, ""
+	}
+
+	output := fmt.Sprintf("%s:\n", romFile)
+
+	output += dumpRomEntryPoint(header.RomEntryPoint)
+	output += dumpNintendoLogo(header.NintendoLogo)
+	output += dumpGameTitle(header.GameTitle)
+	output += dumpGameCode(header.GameCode)
+	output += dumpMakerCode(header.MakerCode)
+	output += dumpFixedValue(header.FixedValue)
+	output += dumpMainUnit(header.MainUnit)
+	output += dumpDeviceType(header.DeviceType)
+	output += dumpReservedArea(header.ReservedAreaOne, header.ReservedAreaTwo)
+	output += dumpSoftwareVersion(header.SoftwareVersion)
+	output += dumpComplementCheck(header.ComplementCheck, rom)
+	return nil, output
 }
